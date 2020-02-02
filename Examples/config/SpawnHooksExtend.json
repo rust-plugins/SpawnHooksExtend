@@ -1,0 +1,36 @@
+{
+  "Check spawns after initialized": true,
+  "List of entities": [
+    {
+      "Custom added hook": "OnTankSpawned",
+      "Custom removed hook": "OnTankRemoved",
+      "Entity name": "BradleyAPC",
+      "Update interval": 15
+    },
+    {
+      "Entity name": "CargoPlane",
+      "Update interval": 30
+    },
+    {
+      "Entity name": "CargoShip",
+      "Update interval": 60
+    },
+    {
+      "Entity name": "CH47Helicopter",
+      "Update interval": 30
+    },
+    {
+      "Entity name": "BaseHelicopter",
+      "Update interval": 30
+    },
+    {
+      "Custom added hook": "OnLockedCrateSpawned",
+      "Custom removed hook": "OnLockedCrateRemoved",
+      "Update interval": 5,
+      "Entity name": "HackableLockedCrate"
+    }
+  ],
+  "Log events to file": true,
+  "Log to console": false,
+  "Log to global chat": false
+}
