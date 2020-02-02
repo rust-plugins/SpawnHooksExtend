@@ -63,7 +63,7 @@ namespace Oxide.Plugins
         private void AddToTracking(BaseEntity entity, EntityProperty prop)
         {
             LogEntity("added", entity);
-            var tag = CallAddedHook(entity, prop);
+            var tag = CallAddedHook(entity, prop) ?? prop.Name;
             var tracker = new EntityTracker(
                 entity, 
                 prop.UpdateIntervalSeconds, 
@@ -279,7 +279,7 @@ namespace Oxide.Plugins
     
         private class PluginConfiguration
         {
-            [JsonProperty("Log events to file")]
+            [JsonProperty("Log to file")]
             public bool LogToFile { get; set; }
     
             [JsonProperty("Log to global chat")]

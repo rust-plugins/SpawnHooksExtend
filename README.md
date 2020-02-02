@@ -35,12 +35,12 @@ By default you will have two additional hooks `OnEntitySpawned` and `OnEntityRem
 }
 ```
 
-'Check spawns after initialized' - if set as `false`, plugin will inform only about new spawns.  
+'Check spawns after initialized' - if configured as `false`, then plugin will inform you only about new objects. 
 'Custom added/removed hook' - your own hooks for particular object  
-'Entity name' - can be full name of prefab (eg. `assets/prefabs/deployable/chinooklockedcrate/codelockedhackablecrate.prefab`)  
-'Update interval' - interval to check if object still spawned
+'Entity name' - can be class name or full prefab name (eg. `assets/prefabs/deployable/chinooklockedcrate/codelockedhackablecrate.prefab`)  
+'Update interval' - interval to check if object still exists
 
-## Appended hooks
+## New hooks
 ```c#
 private void OnEntitySpawned(string name, BaseEntity entity)
 {
@@ -52,7 +52,8 @@ private void OnEntityRemoved(string name)
     PrintWarning($"'{name}' was removed");
 }
 ```
-Or you can specify tag value and see if all objects with same tag was removed.
+Or you can specify tag value (method should return some string, otherwise will be used configured name).  
+Then you can see if all objects with same tag was removed.
 ```c#
 private string OnEntitySpawned(string name, BaseEntity entity)
 {
