@@ -35,10 +35,10 @@ By default you will have two additional hooks `OnEntitySpawned` and `OnEntityRem
 }
 ```
 
-'Check spawns after initialized' - if configured as `false`, then plugin will inform you only about new objects. 
-'Custom added/removed hook' - your own hooks for particular object  
-'Entity name' - can be class name or full prefab name (eg. `assets/prefabs/deployable/chinooklockedcrate/codelockedhackablecrate.prefab`)  
-'Update interval' - interval to check if object still exists
+**Check spawns after initialized** - if configured as `false`, then plugin will inform you only about new objects.  
+**Custom added/removed hook** - your own hooks for particular object  
+**Entity name** - can be class name or full prefab name (eg. `assets/prefabs/deployable/chinooklockedcrate/codelockedhackablecrate.prefab`)  
+**Update interval** - interval to check if object still exists
 
 ## New hooks
 ```c#
