@@ -111,7 +111,7 @@ namespace Oxide.Plugins
         [ConsoleCommand("spawns")]
         private void CmdHelp(ConsoleSystem.Arg arg)
         {
-            if (!arg.Player().IsAdmin) return;
+            if (arg.Player()?.IsAdmin == false) return;
             var commands = new[]
             {
                 "spawns.find [name] - search spawned entity",
@@ -124,7 +124,7 @@ namespace Oxide.Plugins
         [ConsoleCommand("spawns.find")]
         private void CmdFind(ConsoleSystem.Arg arg)
         {
-            if (!arg.Player().IsAdmin) return;
+            if (arg.Player()?.IsAdmin == false) return;
             if (!arg.Args.Any())
             {
                 CmdHelp(arg);
@@ -139,7 +139,7 @@ namespace Oxide.Plugins
                 };
 
                 info.Add($"Id: {entity.GetInstanceID()}");
-                info.Add($"Prefab: {entity.ShortPrefabName} {entity.prefabID}");
+                info.Add($"Prefab: {entity.PrefabName}");
                 info.Add($"Position: {entity.ServerPosition}");
                 info.Add($"Traits: {string.Join(", ", entity.Traits)}");
                 info.Add($"Flags: {string.Join(", ", entity.flags)}");
@@ -181,7 +181,7 @@ namespace Oxide.Plugins
         [ConsoleCommand("spawns.debug")]
         private void CmdDebug(ConsoleSystem.Arg arg)
         {
-            if (!arg.Player().IsAdmin) return;
+            if (arg.Player()?.IsAdmin == false) return;
             _debug = !_debug;
             arg.ReplyWith(_debug ? "Debug enabled" : "Debug disabled");
         }

@@ -30,7 +30,7 @@
       "Entity name": "HackableLockedCrate"
     }
   ],
-  "Log events to file": true,
+  "Log to file": true,
   "Log to console": false,
   "Log to global chat": false
 }
