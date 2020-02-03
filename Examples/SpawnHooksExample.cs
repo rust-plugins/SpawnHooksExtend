@@ -15,36 +15,26 @@ namespace Oxide.Plugins
         // return type can be 'void' or 'string'.
         // If method returned string, then this string will be sent to 'OnEntityRemoved(name, tag, ...)'  as 'tag' value
         //
-        // private void OnEntitySpawned()
-        // private void OnEntitySpawned(string name)
-        // private void OnEntitySpawned(string name, BaseEntity entity)
+        // private void OnEntitySpawned(string name, BaseEntity entity, Dictionary<string, int> currentTags)
         private void OnEntitySpawned(string name, BaseEntity entity)
         {
             PrintWarning($"'{name}' was spawned {entity.ServerPosition}");
         }
 
-        // private void OnEntityRemoved()
-        // private void OnEntityRemoved(string name)
-        // private void OnEntityRemoved(string name, string tag)
-        // private void OnEntityRemoved(string name, string tag, bool lastWithTag)
-        private void OnEntityRemoved(string name, string tag, bool isItLastOne)
+        // private void OnEntityRemoved(string name, string tag, Dictionary<string, uint> currentTags)
+        private void OnEntityRemoved(string name, string tag, Dictionary<string, uint> currentTags)
         {
-            if(isItLastOne) PrintWarning($"All '{name}' was removed");
+            if(!currentTags.ContainsKey(tag) || currentTags[tag] == 0) PrintWarning($"All '{name}' was removed");
             else PrintWarning($"'{name}' was removed");
         }
 
-        // private void OnTankSpawned()
-        // private void OnTankSpawned(string name)
-        // private void OnTankSpawned(string name, BaseEntity entity)
+        // private void OnTankSpawned(string name, BaseEntity entity, Dictionary<string, uint> currentTags)
         private void OnTankSpawned()
         {
             PrintWarning("Tank was spawned");
         }
 
-        // private void OnTankRemoved()
-        // private void OnTankRemoved(string name)
-        // private void OnTankRemoved(string name, string tag)
-        // private void OnTankRemoved(string name, string tag, bool lastWithTag)
+        // private void OnTankRemoved(string name, string tag, Dictionary<string, uint> currentTags)
         private void OnTankRemoved()
         {
             PrintWarning("Tank was removed");
@@ -64,11 +54,11 @@ namespace Oxide.Plugins
         }
 
         // tag will contains value returned from 'OnLockedCrateSpawned' method for removed Entity
-        private void OnLockedCrateRemoved(string name, string tag, bool lastWithTag)
+        private void OnLockedCrateRemoved(string name, string tag, Dictionary<string, uint> currentTags)
         {
             if (tag == OilBoxTag)
             {
-                if (lastWithTag) PrintWarning("All Oil boxes disappeared");
+                if (!currentTags.ContainsKey(tag) || currentTags[tag] == 0) PrintWarning("All Oil boxes disappeared");
                 else PrintWarning("Oil box disappeared");
             }
             else
