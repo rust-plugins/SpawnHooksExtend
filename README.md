@@ -64,10 +64,14 @@ private string OnEntitySpawned(string name, BaseEntity entity)
     return null;
 }
 
-private void OnEntityRemoved(string name, string tag, bool lastWithTag)
+private void OnEntityRemoved(string name, string tag, Dictionary<string, uint> currentTags)
 {
-    if(lastWithTag && tag == "SomeSpecialLootContainer") PrintWarning($"All special loot boxes was removed");
-    else PrintWarning($"'{name}' was removed");
+    if(tag == "SomeSpecialLootContainer") {
+      if(!currentTags.ContainsKey(tag) || currentTags[tag] == 0) 
+        PrintWarning($"All special loot boxes was removed");
+      else 
+        PrintWarning($"One of special loot boxes was removed");
+    } else PrintWarning($"'{name}' was removed");
 }
 ```
 

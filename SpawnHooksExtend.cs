@@ -63,7 +63,7 @@ namespace Oxide.Plugins
         private void AddToTracking(BaseEntity entity, EntityProperty prop)
         {
             LogEntity("added", entity);
-            var tag = CallAddedHook(entity, prop) ?? prop.Name;
+            var tag = CallAddedHook(entity, prop) as string ?? prop.Name;
             var tracker = new EntityTracker(
                 entity, 
                 prop.UpdateIntervalSeconds, 
@@ -85,13 +85,18 @@ namespace Oxide.Plugins
 
         #region Call added/removed hooks
 
+        private Dictionary<string, uint> CurrentTags => _trackers
+            .Select(x => x.Tag)
+            .GroupBy(x => x)
+            .ToDictionary(x => x.Key, x => (uint) x.Count());
+
         private string CallAddedHook(BaseEntity entity, EntityProperty prop)
         {
             var hookName = string.IsNullOrEmpty(prop.CustomAddedHookName)
                 ? DefaultAddedHookName
                 : prop.CustomAddedHookName;
 
-            return Interface.uMod.CallHook(hookName, prop.Name, entity) as string;
+            return Interface.uMod.CallHook(hookName, prop.Name, entity, CurrentTags) as string;
         }
 
         private void CallRemovedHook(EntityProperty prop, EntityTracker tracker)
@@ -100,8 +105,7 @@ namespace Oxide.Plugins
                 ? DefaultRemovedHookName
                 : prop.CustomRemovedHookName;
 
-            var lastWithTag = !_trackers.Any(x => x.Tag?.Equals(tracker.Tag, StringComparison.InvariantCultureIgnoreCase) == true);
-            Interface.uMod.CallHook(hookName, prop.Name, tracker.Tag, lastWithTag);
+            Interface.uMod.CallHook(hookName, prop.Name, tracker.Tag, CurrentTags);
         }
 
         #endregion
@@ -254,6 +258,7 @@ namespace Oxide.Plugins
                 if (onDeactivate == null) throw new ArgumentNullException(nameof(onDeactivate));
                 if (timer == null) throw new ArgumentNullException(nameof(timer));
                 if (updateIntervalSeconds == 0) throw new ArgumentNullException(nameof(updateIntervalSeconds));
+                if (tag == null) throw new ArgumentNullException(nameof(tag));
     
                 Entity = entity;
                 Tag = tag;
