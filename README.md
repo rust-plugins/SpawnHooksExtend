@@ -9,6 +9,7 @@ By default you will have two additional hooks `OnEntitySpawned` and `OnEntityRem
     {
       "Custom added hook": "OnTankSpawned",
       "Custom removed hook": "OnTankRemoved",
+      "Custom group removed hook": "OnAllTanksRemoved",
       "Entity name": "BradleyAPC",
       "Update interval": 15
     },
@@ -41,6 +42,7 @@ By default you will have two additional hooks `OnEntitySpawned` and `OnEntityRem
 **Update interval** - interval to check if object still exists
 
 ## New hooks
+Just add these hooks into you plugin to start listening spawns.
 ```c#
 private void OnEntitySpawned(string name, BaseEntity entity)
 {
@@ -48,6 +50,12 @@ private void OnEntitySpawned(string name, BaseEntity entity)
 }
 
 private void OnEntityRemoved(string name)
+{
+    PrintWarning($"'{name}' was removed");
+}
+
+
+private void OnGroupEntityRemoved(string name)
 {
     PrintWarning($"'{name}' was removed");
 }
@@ -73,6 +81,16 @@ private void OnEntityRemoved(string name, string tag, Dictionary<string, uint> c
         PrintWarning($"One of special loot boxes was removed");
     } else PrintWarning($"'{name}' was removed");
 }
+
+private void OnGroupEntityRemoved(string name, string tag)
+{
+    PrintWarning($"All '{name}' was removed");
+}
+```
+Also, you can restart spawns. It can be useful during your development of some super plugin. For example on start of your plugin, you can update spawn states.
+
+```c#
+Interface.CallHook("SpawnHooksReload");
 ```
 
 ## Console commands
