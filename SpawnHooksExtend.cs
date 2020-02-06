@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -13,6 +14,7 @@ namespace Oxide.Plugins
     {
         private const string DefaultAddedHookName = "OnEntitySpawned";
         private const string DefaultRemovedHookName = "OnEntityRemoved";
+        private const string DefaultGroupRemovedHookName = "OnGroupEntityRemoved";
         
         private readonly List<EntityTracker> _trackers = new List<EntityTracker>();
         private PluginConfiguration _config;
@@ -28,11 +30,30 @@ namespace Oxide.Plugins
 
         private void OnServerInitialized(bool serverInitialized)
         {
-            if (_config.CheckSpawnsOnInit) NextTick(CheckSpawnsOnInit);
+            if (_config.CheckSpawnsOnInit) NextTick(SpawnHooksReload);
             else _initialized = true;
         }
 
-        private void CheckSpawnsOnInit()
+        [HookMethod("SpawnHooksReload")]
+        private void SpawnHooksReload()
+        {
+            Puts("Spawns looking...");
+            Reset();
+            LoadSpawns();
+
+            _initialized = true;
+        }
+
+        private void Reset()
+        {
+            foreach (var tracker in _trackers.ToList())
+                tracker.Stop();
+
+            // not necessary, but to be sure (;
+            _trackers.Clear();
+        }
+
+        private void LoadSpawns()
         {
             var entities = UnityEngine.Object
                 .FindObjectsOfType<BaseEntity>()
@@ -43,8 +64,6 @@ namespace Oxide.Plugins
                 var prop = FindProp(entity);
                 if(prop != null) AddToTracking(entity, prop);
             }
-
-            _initialized = true;
         }
 
         #endregion
@@ -85,10 +104,13 @@ namespace Oxide.Plugins
 
         #region Call added/removed hooks
 
-        private Dictionary<string, uint> CurrentTags => _trackers
-            .Select(x => x.Tag)
-            .GroupBy(x => x)
-            .ToDictionary(x => x.Key, x => (uint) x.Count());
+        private Dictionary<string, uint> GetCurrentTags()
+        {
+            return _trackers
+                .Select(x => x.Tag)
+                .GroupBy(x => x)
+                .ToDictionary(x => x.Key, x => (uint) x.Count());
+        }
 
         private string CallAddedHook(BaseEntity entity, EntityProperty prop)
         {
@@ -96,16 +118,28 @@ namespace Oxide.Plugins
                 ? DefaultAddedHookName
                 : prop.CustomAddedHookName;
 
-            return Interface.uMod.CallHook(hookName, prop.Name, entity, CurrentTags) as string;
+            var tags = GetCurrentTags();
+            return Interface.uMod.CallHook(hookName, prop.Name, entity, tags) as string;
         }
 
         private void CallRemovedHook(EntityProperty prop, EntityTracker tracker)
         {
+            var tags = GetCurrentTags();
+            var theLastOne = !tags.ContainsKey(tracker.Tag) || tags[tracker.Tag] <= 0;
+            if (theLastOne)
+            {
+                var groupHookName = string.IsNullOrEmpty(prop.CustomGroupRemovedHookName)
+                    ? DefaultGroupRemovedHookName
+                    : prop.CustomGroupRemovedHookName;
+
+                Interface.uMod.CallHook(groupHookName, prop.Name, tracker.Tag);
+            }
+
             var hookName = string.IsNullOrEmpty(prop.CustomRemovedHookName)
                 ? DefaultRemovedHookName
                 : prop.CustomRemovedHookName;
 
-            Interface.uMod.CallHook(hookName, prop.Name, tracker.Tag, CurrentTags);
+            Interface.uMod.CallHook(hookName, prop.Name, tracker.Tag, tags);
         }
 
         #endregion
@@ -241,6 +275,9 @@ namespace Oxide.Plugins
     
             [JsonProperty("Custom removed hook")]
             public string CustomRemovedHookName { get; set; }
+    
+            [JsonProperty("Custom group removed hook")]
+            public string CustomGroupRemovedHookName { get; set; }
         }
     
         private class EntityTracker
@@ -248,15 +285,16 @@ namespace Oxide.Plugins
             public BaseEntity Entity { get; }
             public string Tag { get; }
     
-            private readonly PluginTimers _timer;
+            private readonly PluginTimers _timerPlugin;
             private readonly Action<EntityTracker> _onDeactivate;
             private readonly byte _updateIntervalSeconds;
+            private Timer _innerTimer;
     
-            public EntityTracker(BaseEntity entity, byte updateIntervalSeconds, PluginTimers timer, string tag, Action<EntityTracker> onDeactivate)
+            public EntityTracker(BaseEntity entity, byte updateIntervalSeconds, PluginTimers timerPlugin, string tag, Action<EntityTracker> onDeactivate)
             {
                 if (entity == null) throw new ArgumentNullException(nameof(entity));
                 if (onDeactivate == null) throw new ArgumentNullException(nameof(onDeactivate));
-                if (timer == null) throw new ArgumentNullException(nameof(timer));
+                if (timerPlugin == null) throw new ArgumentNullException(nameof(timerPlugin));
                 if (updateIntervalSeconds == 0) throw new ArgumentNullException(nameof(updateIntervalSeconds));
                 if (tag == null) throw new ArgumentNullException(nameof(tag));
     
@@ -264,7 +302,7 @@ namespace Oxide.Plugins
                 Tag = tag;
     
                 _updateIntervalSeconds = updateIntervalSeconds;
-                _timer = timer;
+                _timerPlugin = timerPlugin;
                 _onDeactivate = onDeactivate;
     
                 CheckActive();
@@ -278,7 +316,15 @@ namespace Oxide.Plugins
                     return;
                 }
     
-                _timer.Once(_updateIntervalSeconds, CheckActive);
+                _innerTimer = _timerPlugin.Once(_updateIntervalSeconds, CheckActive);
+            }
+    
+            public void Stop()
+            {
+                _onDeactivate.Invoke(this);
+    
+                _innerTimer?.Destroy();
+                _innerTimer = null;
             }
         }
     

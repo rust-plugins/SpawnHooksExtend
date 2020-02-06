@@ -4,6 +4,7 @@
     {
       "Custom added hook": "OnTankSpawned",
       "Custom removed hook": "OnTankRemoved",
+      "Custom group removed hook": "OnAllTanksRemoved",
       "Entity name": "BradleyAPC",
       "Update interval": 15
     },
